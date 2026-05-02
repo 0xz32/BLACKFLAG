@@ -26,6 +26,7 @@ var (
 	serverReroutedNull  = regexp.MustCompile(`<Local Route Guard - Server Rerouted>.*\| NULL ENTITY\|`)
 	vcfLocalDriver      = regexp.MustCompile(`<Vehicle Control Flow>.*\[(\d+)\].*'([A-Z][A-Za-z0-9_]+)_(\d+)'`)
 	geidFromPlayerGEID  = regexp.MustCompile(`playerGEID=(\d+)`)
+	csciNavOwnership    = regexp.MustCompile(`NOT AUTH \| ([A-Z][A-Za-z0-9_]+)_(\d+)\[\d+\]\|CSCItemNavigation::([A-Za-z][A-Za-z0-9_]*)`)
 	geidFromSubscribe   = regexp.MustCompile(`<SubscribeToPlayerSocial> Subscribing to player (\d+) social topics`)
 	timestampLine       = regexp.MustCompile(`<([0-9T:.Z-]+)>`)
 )
@@ -83,6 +84,10 @@ func (t *tracker) handleLine(line string) {
 		}
 	}
 
+	if m := csciNavOwnership.FindStringSubmatch(line); m != nil && m[3] != "PostInitialize" {
+		t.localOwnedIDs[m[2]] = true
+	}
+	
 	ts := extractTimestamp(line)
 
 	if m := serverReroutedNamed.FindStringSubmatch(line); m != nil {
